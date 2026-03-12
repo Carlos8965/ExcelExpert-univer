@@ -1,0 +1,18 @@
+:root {
+  --excel-green: #217346;
+  --excel-light-gray: #f3f2f1;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Forzar el color verde de Univer para que coincida con Excel */
+.univer-base-component {
+  --univer-primary-color: #217346 !important;
+}
