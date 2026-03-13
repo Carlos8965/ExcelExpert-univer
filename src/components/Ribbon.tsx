@@ -22,7 +22,7 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
         .group-label { font-size: 10px; color: #666; text-align: center; margin-top: auto; padding-bottom: 2px; }
         .btn { display: flex; background: transparent; border: 1px solid transparent; border-radius: 4px; cursor: pointer; color: #333; position: relative; }
         .btn:hover { background: #e1dfdd; border: 1px solid #c8c6c4; }
-        .btn-large { flex-direction: column; align-items: center; min-width: 50px; font-size: 11px; padding: 4px; }
+        .btn-large { flex-direction: column; align-items: center; min-width: 50px; font-size: 11px; padding: 4px; text-align: center; }
         .btn-large .icon { font-size: 24px; }
         .btn-small { flex-direction: row; align-items: center; padding: 2px 6px; font-size: 11px; gap: 6px; width: 100%; }
         .btn-icon { width: 26px; height: 26px; justify-content: center; align-items: center; font-size: 13px; }
@@ -39,9 +39,9 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
       </div>
 
       <div className="tools-row">
+        {/* PESTAÑA INICIO */}
         {pestanaActiva === 'Inicio' && (
           <>
-            {/* PORTAPAPELES */}
             <div className="group">
               <div className="group-content">
                 <button className="btn btn-large" onClick={() => accion('pegar')}><span className="icon">📋</span>Pegar</button>
@@ -53,7 +53,6 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
               <span className="group-label">Portapapeles</span>
             </div>
 
-            {/* FUENTE */}
             <div className="group">
               <div className="group-content col">
                 <div className="row">
@@ -75,7 +74,6 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
               <span className="group-label">Fuente</span>
             </div>
 
-            {/* ALINEACIÓN */}
             <div className="group">
               <div className="group-content col">
                 <div className="row">
@@ -94,7 +92,6 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
               <span className="group-label">Alineación</span>
             </div>
 
-            {/* NÚMERO */}
             <div className="group">
               <div className="group-content col">
                 <select className="select-input" style={{width:'100%'}} onChange={(e) => accion('numberFormat', e.target.value)}>
@@ -112,8 +109,7 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
               </div>
               <span className="group-label">Número</span>
             </div>
-
-            {/* ESTILOS */}
+            
             <div className="group">
               <div className="group-content">
                 <button className="btn btn-large" onClick={() => accion('condFormat')}><span className="icon">🚥</span>Formato Condicional</button>
@@ -122,7 +118,6 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
               <span className="group-label">Estilos</span>
             </div>
 
-            {/* CELDAS */}
             <div className="group">
               <div className="group-content row">
                 <div className="col">
@@ -134,7 +129,6 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
               <span className="group-label">Celdas</span>
             </div>
 
-            {/* EDICIÓN */}
             <div className="group">
               <div className="group-content">
                 <button className="btn btn-large" onClick={() => accion('autosum')}><span className="icon">∑</span>Autosuma</button>
@@ -144,6 +138,48 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
                 </div>
               </div>
               <span className="group-label">Edición</span>
+            </div>
+          </>
+        )}
+
+        {/* PESTAÑA INSERTAR <--- NUEVA SECCIÓN */}
+        {pestanaActiva === 'Insertar' && (
+          <>
+            <div className="group">
+              <div className="group-content">
+                <button 
+                  className="btn btn-large" 
+                  onClick={() => accion('insertPivotTable')}
+                >
+                  <span className="icon">📊</span>
+                  Tabla dinámica
+                </button>
+                <button className="btn btn-large" onClick={() => accion('tableFormat')}>
+                  <span className="icon">▦</span>
+                  Tabla
+                </button>
+                <button className="btn btn-large" onClick={() => accion('abrirAnalizador')}>
+                  <span className="icon">🔧</span>
+                  Analizar Campos
+                </button>
+              </div>
+              <span className="group-label">Tablas</span>
+            </div>
+
+            <div className="group">
+              <div className="group-content">
+                <button className="btn btn-large"><span className="icon">🖼️</span>Ilustraciones</button>
+                <button className="btn btn-large"><span className="icon">♾️</span>Formas</button>
+              </div>
+              <span className="group-label">Ilustraciones</span>
+            </div>
+
+            <div className="group">
+              <div className="group-content">
+                <button className="btn btn-large"><span className="icon">📈</span>Gráficos</button>
+                <button className="btn btn-large"><span className="icon">📉</span>Líneas</button>
+              </div>
+              <span className="group-label">Gráficos</span>
             </div>
           </>
         )}
