@@ -4,10 +4,10 @@ interface RibbonProps {
   pestanaActiva: string;
   setPestanaActiva: (tab: string) => void;
   accion: (nombre: string, valor?: any) => void;
+  tabsDisponibles: string[]; // Nueva prop para recibir las pestañas visibles
 }
 
-const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion }) => {
-  const tabs = ['Archivo', 'Inicio', 'Insertar', 'Disposición de página', 'Fórmulas', 'Datos', 'Revisar', 'Vista'];
+const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion, tabsDisponibles }) => {
 
   return (
     <div className="ribbon-container">
@@ -33,16 +33,16 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
       `}</style>
 
       <div className="tabs-row">
-  {tabs.map(tab => (
-    <div 
-      key={tab} 
-      className={`tab ${pestanaActiva === tab ? 'active' : ''}`} 
-      onClick={() => setPestanaActiva(tab)} // Esto disparará el setShowFileMenu(true) en el padre
-    >
-      {tab}
-    </div>
-  ))}
-</div>
+        {tabsDisponibles.map((tab, index) => (
+          <div 
+            key={`${tab}-${index}`} // <--- CAMBIA ESTO: Nombre + Índice
+            className={`tab ${pestanaActiva === tab ? 'active' : ''}`} 
+            onClick={() => setPestanaActiva(tab)}
+          >
+            {tab}
+          </div>
+        ))}
+      </div>
 
       <div className="tools-row">
         {/* PESTAÑA INICIO */}
@@ -189,9 +189,42 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
             </div>
           </>
         )}
+
+      {pestanaActiva === 'Programador' && (
+  <>
+    <div className="group">
+      <div className="group-content">
+        <button className="btn btn-large" onClick={() => accion('visualBasic')}>
+          <span className="icon" style={{ color: '#2b579a' }}>📄</span>
+          Visual Basic
+        </button>
+        <button className="btn btn-large" onClick={() => accion('macros')}>
+          <span className="icon" style={{ color: '#217346' }}>▶️</span>
+          Macros
+        </button>
+      </div>
+      <span className="group-label">Código</span>
+    </div>
+
+    <div className="group">
+      <div className="group-content">
+        <button className="btn btn-large"><span className="icon">📥</span>Complementos</button>
+      </div>
+      <span className="group-label">Complementos</span>
+    </div>
+
+    <div className="group">
+      <div className="group-content">
+        <button className="btn btn-large"><span className="icon">🖼️</span>Insertar</button>
+        <button className="btn btn-large"><span className="icon">⚙️</span>Propiedades</button>
+      </div>
+      <span className="group-label">Controles</span>
+    </div>
+  </>
+      )}
       </div>
     </div>
   );
-};
+}
 
 export default Ribbon;

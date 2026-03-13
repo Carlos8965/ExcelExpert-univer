@@ -3,9 +3,12 @@ import React from 'react';
 interface FileMenuProps {
   onClose: () => void;
   recentFiles: string[];
+  onOpenOptions: () => void; // <--- 1. AGREGAR A LA INTERFACE
 }
 
-const FileMenu: React.FC<FileMenuProps> = ({ onClose, recentFiles }) => {
+// 2. RECIBIRLA AQUÍ (Dentro de las llaves)
+const FileMenu: React.FC<FileMenuProps> = ({ onClose, recentFiles, onOpenOptions }) => {
+  
   const menuItems = [
     { label: 'Inicio', icon: '🏠', active: true },
     { label: 'Nuevo', icon: '📄' },
@@ -30,7 +33,7 @@ const FileMenu: React.FC<FileMenuProps> = ({ onClose, recentFiles }) => {
 
   return (
     <div style={styles.overlay}>
-      {/* BARRA LATERAL IZQUIERDA */}
+      {/* BARRA LATERAL */}
       <div style={styles.sidebar}>
         <button onClick={onClose} style={styles.backBtn}>←</button>
         <div style={styles.menuList}>
@@ -40,11 +43,14 @@ const FileMenu: React.FC<FileMenuProps> = ({ onClose, recentFiles }) => {
               {item.label}
             </div>
           ))}
-        </div>
-        <div style={styles.bottomMenu}>
+        </div><div style={styles.bottomMenu}>
           <div style={styles.menuItem}>👤 Cuenta</div>
           <div style={styles.menuItem}>💬 Comentarios</div>
-          <div style={styles.menuItem}>⚙️ Opciones</div>
+          
+          {/* 3. USARLA AQUÍ */}
+          <div style={styles.menuItem} onClick={onOpenOptions}>
+             ⚙️ Opciones
+          </div>
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import Ribbon from "./Ribbon";
 import PivotSidebar from "./PivotSidebar";
 import FileMenu from "./FileMenu";
+import OptionsModal from "./OptionsModal"; // Asegúrate de crear este archivo
 
 // Estilos
 import "@univerjs/design/lib/index.css";
@@ -18,8 +19,11 @@ export const ExcelSimulator = ({ fileName }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const univerRef = useRef<any>(null);
   
+  // ESTADOS (Corregido 'Const' por 'const')
   const [timeLeft, setTimeLeft] = useState(2679);
+  const [tabsVisibles, setTabsVisibles] = useState(['Archivo', 'Inicio', 'Insertar', 'Disposición de página', 'Fórmulas', 'Datos', 'Revisar', 'Vista', 'Ayuda']);
   const [showFileMenu, setShowFileMenu] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   const [pestanaActiva, setPestanaActiva] = useState('Inicio');
   const [showPivotPanel, setShowPivotPanel] = useState(false);
   const [fields, setFields] = useState<string[]>([]);
@@ -32,7 +36,22 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  // --- 1. LÓGICA DEL ANALIZADOR ---
+  // --- LÓGICA DE PESTAÑAS ---
+  const manejarCambioPestana = (tab: string) => {
+    if (tab === 'Archivo') {
+      setShowFileMenu(true);
+    } else {
+      setPestanaActiva(tab);
+    }
+  };
+
+  //Función para actualizar pestañas desde el Modal
+  const actualizarPestanas = (listaNuevas: string[]) => {
+    setTabsVisibles(listaNuevas);
+    setShowOptions(false); // Cerrar al aceptar
+  };
+
+  // --- LÓGICA DEL ANALIZADOR PIVOT ---
   const abrirAnalizador = () => {
     if (!univerRef.current) return;
     try {
@@ -61,7 +80,6 @@ export const ExcelSimulator = ({ fileName }: Props) => {
     }
   };
 
-  // --- 2. LÓGICA DE PROCESAMIENTO PIVOT ---
   const manejarCambioPivot = (config: any) => {
     if (!config.rows.length || !config.values.length || !univerRef.current) return;
     const api = univerRef.current;
@@ -71,7 +89,7 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
     if (!sourceSheet) return;
 
-    const totalFilas = sourceSheet.getRowCount ? sourceSheet.getRowCount() : 100;
+    const totalFilas = 100;
     const allData = sourceSheet.getRange(0, 0, totalFilas, 15).getValues();
     const headers = allData[0].map((h: any) => (h && typeof h === 'object') ? h?.v : h);
     
@@ -128,7 +146,7 @@ export const ExcelSimulator = ({ fileName }: Props) => {
     pivotSheet.getRange(0, 0, 1, finalTable[0].length).setFontWeight('bold').setBackgroundColor('#f2f2f2');
   };
 
-  // --- 3. CARGA DE ARCHIVO ---
+  // --- CARGA DE ARCHIVO ---
   useEffect(() => {
     if (!containerRef.current) return;
     const init = async () => {
@@ -168,15 +186,7 @@ export const ExcelSimulator = ({ fileName }: Props) => {
     return () => univerRef.current?.dispose();
   }, [fileName]);
 
-  // --- 4. FUNCIONES DE INTERACCIÓN (CORREGIDAS) ---
-  const manejarCambioPestana = (tab: string) => {
-    if (tab === 'Archivo') {
-      setShowFileMenu(true);
-    } else {
-      setPestanaActiva(tab);
-    }
-  };
-
+  // --- ACCIONES DEL RIBBON ---
   const ejecutarAccion = (nombre: string, valor?: any) => {
     if (!univerRef.current) return;
     const api = univerRef.current;
@@ -211,20 +221,37 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
   return (
     <div style={styles.mainWrapper}>
-      {/* MENU DE ARCHIVO (OVERLAY) */}
+      {/* 1. VENTANA DE OPCIONES (Nivel más alto) */}
+      {showOptions && (
+  <OptionsModal 
+    onClose={() => setShowOptions(false)} 
+    // Usamos Array.from(new Set(...)) para ELIMINAR DUPLICADOS
+    onAccept={(nuevasTabs) => {
+      const listaLimpia = Array.from(new Set(['Archivo', ...nuevasTabs]));
+      setTabsVisibles(listaLimpia);
+      setShowOptions(false);
+    }} 
+    currentTabs={tabsVisibles}
+  />
+)}
+
+      {/* 2. MENU DE ARCHIVO (OVERLAY) */}
       {showFileMenu && (
         <FileMenu 
           onClose={() => setShowFileMenu(false)} 
-          recentFiles={[fileName, 'VideoJuegos_01.xlsx', 'Reporte_de_Ventas.xlsx', 'Las Macros.xlsm']} 
+          onOpenOptions={() => { setShowFileMenu(false); setShowOptions(true); }}
+          recentFiles={Array.from(new Set([fileName, 'VideoJuegos_01.xlsx', 'Reporte_de_Ventas.xlsx']))} 
         />
       )}
 
       <header style={styles.topHeader}><span>Excel Simulator - {fileName}</span></header>
       
+      {/* 3. El Ribbon ahora recibe la lista dinámica */}
       <Ribbon 
         pestanaActiva={pestanaActiva} 
         setPestanaActiva={manejarCambioPestana} 
-        accion={ejecutarAccion} 
+        accion={ejecutarAccion}
+        tabsDisponibles={tabsVisibles} // <--- Nueva Prop
       />
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
