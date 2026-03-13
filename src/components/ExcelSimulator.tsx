@@ -66,7 +66,8 @@ export const ExcelSimulator = ({ fileName }: Props) => {
   };
 
   const manejarCambioPivot = (config: any) => {
-    if (!config.rows || !config.values || !univerRef.current) return;
+    // Validamos que haya al menos un campo en filas y uno en valores
+    if (!config.rows.length || !config.values.length || !univerRef.current) return;
     
     const api = univerRef.current;
     const activeWorkbook = api.getActiveWorkbook();
@@ -75,55 +76,92 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
     if (!sourceSheet) return;
 
+    // 1. Obtener todos los datos
     const totalFilas = sourceSheet.getRowCount ? sourceSheet.getRowCount() : 100;
     const allData = sourceSheet.getRange(0, 0, totalFilas, 15).getValues();
+    const headers = allData[0].map((h: any) => (h && typeof h === 'object') ? h?.v : h);
     
-    // SEGURIDAD: Validar que existan datos
-    if (!allData || !allData[0]) return;
+    // Obtener índices de todos los campos seleccionados (Soporta múltiples)
+    const idxRows = config.rows.map((f: string) => headers.indexOf(f));
+    const idxCols = config.columns.map((f: string) => headers.indexOf(f));
+    const idxVals = config.values.map((f: string) => headers.indexOf(f));
 
-    // FIX: Mapeo de encabezados con verificación de nulidad
-    const headers = allData[0].map((h: any) => {
-        if (!h) return "";
-        return typeof h === 'object' ? h?.v : h;
-    });
-    
-    const idxRow = headers.indexOf(config.rows);
-    const idxVal = headers.indexOf(config.values);
+    // 2. Lógica de Agrupación
+    const matrix: Record<string, Record<string, number>> = {};
+    const colSet = new Set<string>(); // Aquí guardaremos los nombres de las columnas únicas
 
-    if (idxRow === -1 || idxVal === -1) return;
-
-    const grouped: Record<string, number> = {};
     for (let i = 1; i < allData.length; i++) {
-      const cellRow = allData[i][idxRow];
-      const cellVal = allData[i][idxVal];
+        // Llave de FILA (Ej: "Este - Ana")
+        const rowKey = idxRows.map((idx: number) => {
+            const cell = allData[i][idx];
+            return (cell && typeof cell === 'object') ? cell?.v : cell || "";
+        }).filter(Boolean).join(" - ");
 
-      // Extraer valores de forma segura evitando el error de 'null'
-      const cat = (cellRow && typeof cellRow === 'object') ? cellRow?.v : cellRow;
-      const rawV = (cellVal && typeof cellVal === 'object') ? cellVal?.v : cellVal;
-      
-      if (cat !== null && cat !== undefined && cat !== "") {
-        const val = parseFloat(String(rawV || "0").replace(/[$,]/g, '')) || 0;
-        grouped[String(cat)] = (grouped[String(cat)] || 0) + val;
-      }
+        // Llave de COLUMNA (Ej: "PS4 - Shooter" o "Total" si no hay columnas)
+        const colKey = idxCols.length > 0 ? idxCols.map((idx: number) => {
+            const cell = allData[i][idx];
+            return (cell && typeof cell === 'object') ? cell?.v : cell || "";
+        }).filter(Boolean).join(" - ") : "Total";
+
+        if (rowKey) {
+            if (!matrix[rowKey]) matrix[rowKey] = {};
+            
+            // Sumar valores (Soporta múltiples campos en Valores)
+            let sumaFila = 0;
+            idxVals.forEach((idx: number) => {
+                const cell = allData[i][idx];
+                const rawV = (cell && typeof cell === 'object') ? cell?.v : cell;
+                sumaFila += parseFloat(String(rawV || "0").replace(/[$,]/g, '')) || 0;
+            });
+
+            matrix[rowKey][colKey] = (matrix[rowKey][colKey] || 0) + sumaFila;
+            colSet.add(colKey);
+        }
     }
 
-    // El resto de la función para escribir en la hoja...
+    // 3. Preparar la tabla final
+    const sortedCols = Array.from(colSet).sort();
+    const finalTable: any[][] = [];
+
+    // ENCABEZADO: [Nombre, Columna1, Columna2, ..., Total General]
+    const headerRow = [`Suma de ${config.values.join(", ")}`, ...sortedCols, "Total general"];
+    finalTable.push(headerRow);
+
+    // FILAS DE DATOS
+    Object.entries(matrix).forEach(([rowName, rowData]) => {
+        let rowSum = 0;
+        const newRow = [rowName];
+        sortedCols.forEach(colName => {
+            const val = rowData[colName] || 0;
+            newRow.push(val.toFixed(2));
+            rowSum += val;
+        });
+        newRow.push(rowSum.toFixed(2));
+        finalTable.push(newRow);
+    });
+
+    // FILA DE TOTALES (Al final)
+    const totalRow = ["Total general"];
+    let grandTotal = 0;
+    sortedCols.forEach(colName => {
+        let colSum = 0;
+        Object.values(matrix).forEach(rd => colSum += (rd[colName] || 0));
+        totalRow.push(colSum.toFixed(2));
+        grandTotal += colSum;
+    });
+    totalRow.push(grandTotal.toFixed(2));
+    finalTable.push(totalRow);
+
+    // 4. Escribir resultados
     const pivotSheet = activeWorkbook.getActiveSheet();
     pivotSheet.clear(1);
-    const rows = [[`Etiquetas de ${config.rows}`, `Suma de ${config.values}`]];
-    Object.entries(grouped).forEach(([k, v]) => rows.push([k, v.toFixed(2)]));
-    
-    rows.forEach((row, r) => {
-      row.forEach((v, c) => {
-        pivotSheet.getRange(r, c).setValue(v);
-      });
+    finalTable.forEach((r, i) => {
+        r.forEach((v, j) => pivotSheet.getRange(i, j).setValue(v));
     });
 
-    // Formato final
-    pivotSheet.getRange(0, 0, 1, 2).setFontWeight('bold').setBackgroundColor('#f2f2f2');
-    if (rows.length > 1) {
-        pivotSheet.getRange(rows.length - 1, 0, 1, 2).setFontWeight('bold');
-    }
+    // Formato
+    pivotSheet.getRange(0, 0, 1, headerRow.length).setFontWeight('bold').setBackgroundColor('#f2f2f2');
+    pivotSheet.getRange(finalTable.length - 1, 0, 1, headerRow.length).setFontWeight('bold');
   };
 
   // --- CARGA DE ARCHIVO ---
