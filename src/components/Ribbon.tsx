@@ -33,10 +33,16 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
       `}</style>
 
       <div className="tabs-row">
-        {tabs.map(tab => (
-          <div key={tab} className={`tab ${pestanaActiva === tab ? 'active' : ''}`} onClick={() => setPestanaActiva(tab)}>{tab}</div>
-        ))}
-      </div>
+  {tabs.map(tab => (
+    <div 
+      key={tab} 
+      className={`tab ${pestanaActiva === tab ? 'active' : ''}`} 
+      onClick={() => setPestanaActiva(tab)} // Esto disparará el setShowFileMenu(true) en el padre
+    >
+      {tab}
+    </div>
+  ))}
+</div>
 
       <div className="tools-row">
         {/* PESTAÑA INICIO */}

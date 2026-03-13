@@ -5,6 +5,7 @@ import enUS from "@univerjs/preset-sheets-core/locales/en-US";
 import * as XLSX from "xlsx"; 
 import Ribbon from "./Ribbon";
 import PivotSidebar from "./PivotSidebar";
+import FileMenu from "./FileMenu";
 
 // Estilos
 import "@univerjs/design/lib/index.css";
@@ -18,6 +19,7 @@ export const ExcelSimulator = ({ fileName }: Props) => {
   const univerRef = useRef<any>(null);
   
   const [timeLeft, setTimeLeft] = useState(2679);
+  const [showFileMenu, setShowFileMenu] = useState(false);
   const [pestanaActiva, setPestanaActiva] = useState('Inicio');
   const [showPivotPanel, setShowPivotPanel] = useState(false);
   const [fields, setFields] = useState<string[]>([]);
@@ -30,13 +32,12 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  // --- LÓGICA DEL ANALIZADOR ---
+  // --- 1. LÓGICA DEL ANALIZADOR ---
   const abrirAnalizador = () => {
     if (!univerRef.current) return;
     try {
       const activeWorkbook = univerRef.current.getActiveWorkbook();
       const sheets = activeWorkbook.getSheets();
-      
       const dataSheet = sheets.find((s: any) => {
         const name = s.getSheetName ? s.getSheetName() : s.name;
         return name.includes("Video") || name.includes("Regio");
@@ -47,15 +48,10 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
       const range = dataSheet.getRange(0, 0, 1, 20);
       const rawValues = range.getValues();
-      
-      // Verificación de seguridad para rawValues
       if (!rawValues || !rawValues[0]) return;
 
       const fieldNames = rawValues[0]
-        .map((h: any) => {
-          if (!h) return null; // Si la celda es null, retornamos null
-          return typeof h === 'object' ? h?.v : h; // Usamos ?. para leer v de forma segura
-        })
+        .map((h: any) => (h && typeof h === 'object' ? h?.v : h))
         .filter((h: any) => h !== null && h !== undefined && h !== "");
       
       setFields(fieldNames);
@@ -65,10 +61,9 @@ export const ExcelSimulator = ({ fileName }: Props) => {
     }
   };
 
+  // --- 2. LÓGICA DE PROCESAMIENTO PIVOT ---
   const manejarCambioPivot = (config: any) => {
-    // Validamos que haya al menos un campo en filas y uno en valores
     if (!config.rows.length || !config.values.length || !univerRef.current) return;
-    
     const api = univerRef.current;
     const activeWorkbook = api.getActiveWorkbook();
     const sheets = activeWorkbook.getSheets();
@@ -76,28 +71,23 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
     if (!sourceSheet) return;
 
-    // 1. Obtener todos los datos
     const totalFilas = sourceSheet.getRowCount ? sourceSheet.getRowCount() : 100;
     const allData = sourceSheet.getRange(0, 0, totalFilas, 15).getValues();
     const headers = allData[0].map((h: any) => (h && typeof h === 'object') ? h?.v : h);
     
-    // Obtener índices de todos los campos seleccionados (Soporta múltiples)
     const idxRows = config.rows.map((f: string) => headers.indexOf(f));
     const idxCols = config.columns.map((f: string) => headers.indexOf(f));
     const idxVals = config.values.map((f: string) => headers.indexOf(f));
 
-    // 2. Lógica de Agrupación
     const matrix: Record<string, Record<string, number>> = {};
-    const colSet = new Set<string>(); // Aquí guardaremos los nombres de las columnas únicas
+    const colSet = new Set<string>();
 
     for (let i = 1; i < allData.length; i++) {
-        // Llave de FILA (Ej: "Este - Ana")
         const rowKey = idxRows.map((idx: number) => {
             const cell = allData[i][idx];
             return (cell && typeof cell === 'object') ? cell?.v : cell || "";
         }).filter(Boolean).join(" - ");
 
-        // Llave de COLUMNA (Ej: "PS4 - Shooter" o "Total" si no hay columnas)
         const colKey = idxCols.length > 0 ? idxCols.map((idx: number) => {
             const cell = allData[i][idx];
             return (cell && typeof cell === 'object') ? cell?.v : cell || "";
@@ -105,29 +95,21 @@ export const ExcelSimulator = ({ fileName }: Props) => {
 
         if (rowKey) {
             if (!matrix[rowKey]) matrix[rowKey] = {};
-            
-            // Sumar valores (Soporta múltiples campos en Valores)
             let sumaFila = 0;
             idxVals.forEach((idx: number) => {
                 const cell = allData[i][idx];
                 const rawV = (cell && typeof cell === 'object') ? cell?.v : cell;
                 sumaFila += parseFloat(String(rawV || "0").replace(/[$,]/g, '')) || 0;
             });
-
             matrix[rowKey][colKey] = (matrix[rowKey][colKey] || 0) + sumaFila;
             colSet.add(colKey);
         }
     }
 
-    // 3. Preparar la tabla final
     const sortedCols = Array.from(colSet).sort();
     const finalTable: any[][] = [];
+    finalTable.push([`Suma de ${config.values.join(", ")}`, ...sortedCols, "Total general"]);
 
-    // ENCABEZADO: [Nombre, Columna1, Columna2, ..., Total General]
-    const headerRow = [`Suma de ${config.values.join(", ")}`, ...sortedCols, "Total general"];
-    finalTable.push(headerRow);
-
-    // FILAS DE DATOS
     Object.entries(matrix).forEach(([rowName, rowData]) => {
         let rowSum = 0;
         const newRow = [rowName];
@@ -140,31 +122,13 @@ export const ExcelSimulator = ({ fileName }: Props) => {
         finalTable.push(newRow);
     });
 
-    // FILA DE TOTALES (Al final)
-    const totalRow = ["Total general"];
-    let grandTotal = 0;
-    sortedCols.forEach(colName => {
-        let colSum = 0;
-        Object.values(matrix).forEach(rd => colSum += (rd[colName] || 0));
-        totalRow.push(colSum.toFixed(2));
-        grandTotal += colSum;
-    });
-    totalRow.push(grandTotal.toFixed(2));
-    finalTable.push(totalRow);
-
-    // 4. Escribir resultados
     const pivotSheet = activeWorkbook.getActiveSheet();
     pivotSheet.clear(1);
-    finalTable.forEach((r, i) => {
-        r.forEach((v, j) => pivotSheet.getRange(i, j).setValue(v));
-    });
-
-    // Formato
-    pivotSheet.getRange(0, 0, 1, headerRow.length).setFontWeight('bold').setBackgroundColor('#f2f2f2');
-    pivotSheet.getRange(finalTable.length - 1, 0, 1, headerRow.length).setFontWeight('bold');
+    finalTable.forEach((r, i) => r.forEach((v, j) => pivotSheet.getRange(i, j).setValue(v)));
+    pivotSheet.getRange(0, 0, 1, finalTable[0].length).setFontWeight('bold').setBackgroundColor('#f2f2f2');
   };
 
-  // --- CARGA DE ARCHIVO ---
+  // --- 3. CARGA DE ARCHIVO ---
   useEffect(() => {
     if (!containerRef.current) return;
     const init = async () => {
@@ -173,7 +137,6 @@ export const ExcelSimulator = ({ fileName }: Props) => {
         const res = await fetch(`/excel/${fileName}`);
         const ab = await res.arrayBuffer();
         const wb = XLSX.read(ab, { cellNF: true, cellDates: true });
-
         const univerSheets: any = {};
         const sheetOrder: string[] = [];
 
@@ -182,19 +145,11 @@ export const ExcelSimulator = ({ fileName }: Props) => {
           const ws = wb.Sheets[name];
           const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:Z100');
           const cellData: any = {};
-
           for (let r = range.s.r; r <= range.e.r; r++) {
             cellData[r] = {};
             for (let c = range.s.c; c <= range.e.c; c++) {
-              const cellAddress = XLSX.utils.encode_cell({ r, c });
-              const cell = ws[cellAddress];
-              if (cell) {
-                cellData[r][c] = { 
-                  v: cell.w || cell.v?.toString(), 
-                  t: 1, 
-                  s: (r === 0 ? { bg: { rgb: '#800080' }, cl: { rgb: '#FFFFFF' }, bl: 1 } : null) 
-                };
-              }
+              const cell = ws[XLSX.utils.encode_cell({ r, c })];
+              if (cell) cellData[r][c] = { v: cell.w || cell.v?.toString(), t: 1, s: (r === 0 ? { bg: { rgb: '#800080' }, cl: { rgb: '#FFFFFF' }, bl: 1 } : null) };
             }
           }
           univerSheets[id] = { id, name, cellData, rowCount: 100, columnCount: 20 };
@@ -213,7 +168,15 @@ export const ExcelSimulator = ({ fileName }: Props) => {
     return () => univerRef.current?.dispose();
   }, [fileName]);
 
-  // --- ACCIONES DEL RIBBON ---
+  // --- 4. FUNCIONES DE INTERACCIÓN (CORREGIDAS) ---
+  const manejarCambioPestana = (tab: string) => {
+    if (tab === 'Archivo') {
+      setShowFileMenu(true);
+    } else {
+      setPestanaActiva(tab);
+    }
+  };
+
   const ejecutarAccion = (nombre: string, valor?: any) => {
     if (!univerRef.current) return;
     const api = univerRef.current;
@@ -225,7 +188,6 @@ export const ExcelSimulator = ({ fileName }: Props) => {
         const num = workbook.getSheets().length;
         const newName = `Hoja de Pivot ${num}`;
         api.executeCommand('sheet.command.insert-sheet', { name: newName });
-        
         setTimeout(() => {
           const sheets = workbook.getSheets();
           const newSheet = sheets.find((s: any) => (s.getSheetName ? s.getSheetName() : s.name) === newName);
@@ -235,31 +197,41 @@ export const ExcelSimulator = ({ fileName }: Props) => {
           }
         }, 600);
         break;
-
-      case 'abrirAnalizador':
-        abrirAnalizador();
-        break;
-
+      case 'abrirAnalizador': abrirAnalizador(); break;
       case 'bold':
         const range = activeSheet.getSelection().getActiveRange();
         range?.setFontWeight(range.getFontWeight() === 'bold' ? 'normal' : 'bold');
         break;
-      
       case 'fill':
         activeSheet.getSelection().getActiveRange()?.setBackgroundColor(valor);
         break;
-        
-      default:
-        console.log("Acción no implementada:", nombre);
+      default: console.log("Acción:", nombre);
     }
   };
 
   return (
     <div style={styles.mainWrapper}>
+      {/* MENU DE ARCHIVO (OVERLAY) */}
+      {showFileMenu && (
+        <FileMenu 
+          onClose={() => setShowFileMenu(false)} 
+          recentFiles={[fileName, 'VideoJuegos_01.xlsx', 'Reporte_de_Ventas.xlsx', 'Las Macros.xlsm']} 
+        />
+      )}
+
       <header style={styles.topHeader}><span>Excel Simulator - {fileName}</span></header>
-      <Ribbon pestanaActiva={pestanaActiva} setPestanaActiva={setPestanaActiva} accion={ejecutarAccion} />
+      
+      <Ribbon 
+        pestanaActiva={pestanaActiva} 
+        setPestanaActiva={manejarCambioPestana} 
+        accion={ejecutarAccion} 
+      />
+
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={styles.excelContainer}><div ref={containerRef} style={{ height: '100%' }} /></div>
+        <div style={styles.excelContainer}>
+            <div ref={containerRef} style={{ height: '100%' , width: '100%' }} />
+        </div>
+        
         {showPivotPanel && (
           <PivotSidebar 
             fields={fields} 
