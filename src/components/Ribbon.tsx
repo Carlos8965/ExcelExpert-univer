@@ -17,7 +17,7 @@ const Ribbon: React.FC<RibbonProps> = ({ pestanaActiva, setPestanaActiva, accion
         .tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #333; border-bottom: 3px solid transparent; }
         .tab.active { color: #107c41; border-bottom: 3px solid #107c41; font-weight: 600; }
         .tools-row { display: flex; padding: 4px 10px; height: 95px; overflow-x: auto; align-items: flex-start; }
-        .group { display: flex; flex-direction: column; justify-content: space-between; height: 100%; border-right: 1px solid #c8c6c4; padding: 0 8px; }
+        .group { display: flex; flex-direction: column; justify-content: space-between; height: 100%; border-right: 1px solid #c8c6c4; padding: 0 8px; /* Esto da el margen necesario */ min-width: 60px;}
         .group-content { display: flex; gap: 4px; align-items: flex-start; flex-grow: 1; }
         .group-label { font-size: 10px; color: #666; text-align: center; margin-top: auto; padding-bottom: 2px; }
         .btn { display: flex; background: transparent; border: 1px solid transparent; border-radius: 4px; cursor: pointer; color: #333; position: relative; }
