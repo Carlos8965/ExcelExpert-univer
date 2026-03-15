@@ -5,33 +5,57 @@ import ExcelSimulator from "./components/ExcelSimulator";
 export default function App() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
+  // ✅ Debug simple SIN setState que cause re-renders
+  console.log('🎯 [App.tsx] Render | selectedFile:', selectedFile);
+
+  // ✅ Si NO hay archivo seleccionado → Mostrar FileSelector
   if (!selectedFile) {
-    return <FileSelector onSelect={(archivo) => setSelectedFile(archivo)} />;
+    console.log('📋 [App.tsx] Mostrando FileSelector');
+    return (
+      <FileSelector 
+        onSelectFile={(archivo: string) => {
+          console.log('👆 [App.tsx] onSelectFile llamado con:', archivo);
+          setSelectedFile(archivo);
+          console.log('✅ [App.tsx] setSelectedFile completado:', archivo);
+        }} 
+      />
+    );
   }
 
+  // ✅ Si HAY archivo seleccionado → Mostrar ExcelSimulator
+  console.log('📊 [App.tsx] Mostrando ExcelSimulator con:', selectedFile);
+  
   return (
-    // 1. Usamos un DIV, no un botón
-    <div style={{ width: "100vw", height: "100vh", position: "relative", display: "flex", flexDirection: "column" }}>
-      
-      {/* 2. El botón de cerrar es un elemento separado */}
+    <div style={{ 
+      width: "100vw", 
+      height: "100vh", 
+      position: "relative", 
+      display: "flex", 
+      flexDirection: "column" 
+    }}>
+      {/* Botón de cerrar / volver al menú */}
       <div 
-        onClick={() => setSelectedFile(null)}
+        onClick={() => {
+          console.log('❌ [App.tsx] Cerrar archivo');
+          setSelectedFile(null);
+        }}
         style={{
           backgroundColor: "#d13438",
           color: "white",
           textAlign: "center",
-          padding: "5px",
+          padding: "8px",
           cursor: "pointer",
           fontWeight: "bold",
-          zIndex: 1000
+          zIndex: 1000,
+          fontSize: "14px",
+          userSelect: "none",
         }}
       >
-        Cerrar Archivo // Volver al Menú
+        ← Cerrar Archivo // Volver al Menú
       </div>
 
-      {/* 3. El simulador está afuera del botón */}
+      {/* Simulador de Excel */}
       <ExcelSimulator fileName={selectedFile} />
-      
     </div>
   );
 }
