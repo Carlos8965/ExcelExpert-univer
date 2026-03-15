@@ -3,6 +3,10 @@ import { createUniver, LocaleType, mergeLocales } from "@univerjs/presets";
 import { UniverSheetsCorePreset } from "@univerjs/preset-sheets-core";
 import enUS from "@univerjs/preset-sheets-core/locales/en-US";
 import * as XLSX from "xlsx"; 
+import Ribbon from "./Ribbon";
+import PivotSidebar from "./PivotSidebar";
+import FileMenu from "./FileMenu";
+import OptionsModal from "./OptionsModal";
 import EvaluationBar from "./EvaluationBar";
 
 import "@univerjs/design/lib/index.css";
@@ -14,71 +18,73 @@ interface Props { fileName: string; }
 export const ExcelSimulator = ({ fileName }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const univerRef = useRef<any>(null);
-  const initializedRef = useRef(false); // ✅ Para evitar inicializar dos veces
   
-  const [timeLeft, setTimeLeft] = useState(2700);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sheetName, setSheetName] = useState("Hoja 1");
-  
-  const [pasoActual] = useState(1);
-  const [totalPasos] = useState(1);
-  const [completado] = useState(false);
-  const [estadoEvaluacion] = useState<'pendiente' | 'completado' | 'incorrecto'>('pendiente');
-  const [mensajeEvaluacion] = useState("");
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
-  // ✅ INICIALIZAR CUANDO EL COMPONENTE SE MONTE
+  const addDebug = (msg: string) => {
+    console.log(msg);
+    setDebugInfo(prev => [...prev, msg]);
+  };
+
+  // === INICIALIZAR UNA SOLA VEZ ===
   useEffect(() => {
-    // Evitar inicializar múltiples veces
-    if (initializedRef.current) {
-      console.log('⚠️ Ya está inicializado, saltando...');
-      return;
+    addDebug('🚀 [ExcelSimulator] useEffect INICIADO');
+    addDebug(`📁 fileName: ${fileName}`);
+    addDebug(`🔍 containerRef: ${containerRef.current ? 'OK' : 'NULL'}`);
+
+    // ✅ VERIFICAR CONDICIONES
+    if (!containerRef.current) {
+      addDebug('❌ containerRef es NULL - esperando render...');
+      const timer = setTimeout(() => {
+        if (containerRef.current) {
+          addDebug('✅ containerRef ahora está disponible');
+          initializeUniver();
+        } else {
+          addDebug('❌ containerRef sigue siendo NULL después de 500ms');
+          setError('Error: Contenedor no disponible');
+          setLoading(false);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
     }
-    
-    initializedRef.current = true;
-    console.log('🚀 Iniciando inicialización...');
 
-    // Esperar un tick para asegurar que el DOM se renderizó
-    setTimeout(() => {
-      const container = containerRef.current;
-      console.log('📍 containerRef.current:', container);
-      
-      if (!container) {
-        console.error('❌ Container es null');
-        setError("No se pudo encontrar el contenedor de Excel");
-        setLoading(false);
-        return;
-      }
-
-      initializeUniver(fileName, container);
-    }, 0);
+    initializeUniver();
 
     return () => {
-      console.log('🧹 Cleanup');
+      addDebug('🧹 Cleanup');
       univerRef.current?.dispose();
     };
   }, [fileName]);
 
   // === FUNCIÓN DE INICIALIZACIÓN ===
-  const initializeUniver = async (file: string, container: HTMLDivElement) => {
-    console.log('🔧 Inicializando Univer en:', container);
-    
+  const initializeUniver = async () => {
     try {
-      console.log('📄 Cargando:', file);
+      addDebug('🔧 initializeUniver llamado');
       
-      const res = await fetch(`/datos/${file}`);
+      // ✅ CARGAR EXCEL DIRECTAMENTE (sin config.json)
+      const filePath = `/datos/${fileName}`;
+      addDebug(`📄 Cargando: ${filePath}`);
+      
+      const res = await fetch(filePath);
+      addDebug(`📊 Status: ${res.status}`);
+      
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${file}`);
+        throw new Error(`HTTP ${res.status}: ${filePath}`);
       }
       
       const ab = await res.arrayBuffer();
-      const wb = XLSX.read(ab, { cellNF: true });
+      addDebug(`💾 Tamaño: ${ab.byteLength} bytes`);
       
-      console.log('📊 Sheets:', wb.SheetNames);
-      if (wb.SheetNames.length > 0) {
-        setSheetName(wb.SheetNames[0]);
+      const wb = XLSX.read(ab, { cellNF: true, cellDates: true });
+      addDebug(`📑 Sheets: ${JSON.stringify(wb.SheetNames)}`);
+      
+      if (wb.SheetNames.length === 0) {
+        throw new Error('Excel sin hojas');
       }
       
+      // ✅ PREPARAR DATOS
       const univerSheets: any = {};
       const sheetOrder: string[] = [];
 
@@ -89,6 +95,8 @@ export const ExcelSimulator = ({ fileName }: Props) => {
         const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:Z100');
         const cellData: any = {};
         
+        addDebug(`📝 Sheet "${name}": ${range.e.r + 1} filas x ${range.e.c + 1} cols`);
+        
         for (let r = range.s.r; r <= range.e.r; r++) {
           cellData[r] = {};
           for (let c = range.s.c; c <= range.e.c; c++) {
@@ -96,29 +104,37 @@ export const ExcelSimulator = ({ fileName }: Props) => {
             if (cell) {
               cellData[r][c] = { 
                 v: cell.w || cell.v?.toString(), 
-                t: 1, 
+                t: cell.t || 1,
                 s: null
               };
             }
           }
         }
-        univerSheets[id] = { id, name, cellData, rowCount: 100, columnCount: 20 };
+        
+        univerSheets[id] = { 
+          id, 
+          name, 
+          cellData, 
+          rowCount: Math.max(range.e.r + 1, 100), 
+          columnCount: Math.max(range.e.c + 1, 26) 
+        };
       });
 
-      console.log('🏗️ Creando Univer...');
+      // ✅ CREAR UNIVER
+      addDebug('🏗️ Creando Univer...');
       
       const { univerAPI } = createUniver({
         locale: LocaleType.EN_US,
         locales: { [LocaleType.EN_US]: mergeLocales(enUS) },
         presets: [
           UniverSheetsCorePreset({ 
-            container: container, 
+            container: containerRef.current!, 
             header: false, 
             footer: { 
               sheetBar: true,
-              statisticBar: false,
-              menus: false,
-              zoomSlider: false
+              statisticBar: true,
+              menus: true,
+              zoomSlider: true
             }
           })
         ],
@@ -128,73 +144,58 @@ export const ExcelSimulator = ({ fileName }: Props) => {
       
       univerAPI.createUniverSheet({ 
         id: "workbook-1", 
-        name: file.replace('.xlsx', ''), 
+        name: fileName.replace('.xlsx', ''), 
         sheetOrder, 
         sheets: univerSheets 
       });
       
-      console.log('✅ Univer listo!');
+      addDebug('✅ Univer CREADO exitosamente');
       setLoading(false);
       
     } catch (e: any) {
-      console.error('❌ Error:', e);
+      addDebug(`❌ ERROR: ${e.message}`);
       setError(e.message);
       setLoading(false);
     }
   };
 
-  // Timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
+  // === HANDLERS SIMPLIFICADOS ===
+  const [timeLeft] = useState(2700);
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const handleEvaluate = () => console.log('Evaluar');
-  const handleMarkComplete = () => console.log('Marcar');
-
-  // ✅ RENDER PRINCIPAL - SIEMPRE MUESTRA EL CONTENEDOR
+  // === RENDER ===
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
+      
       {/* Header */}
-      <div style={{ 
-        backgroundColor: '#217346', 
-        color: 'white', 
-        padding: '10px',
-        textAlign: 'center'
-      }}>
-        {sheetName} - {fileName}
+      <div style={{ backgroundColor: '#217346', color: 'white', padding: '10px', textAlign: 'center' }}>
+        {fileName}
       </div>
+      
+      {/* Ribbon */}
+      <Ribbon 
+        pestanaActiva="Inicio" 
+        setPestanaActiva={() => {}} 
+        accion={() => {}}
+        tabsDisponibles={['Archivo', 'Inicio', 'Insertar']}
+      />
 
-      {/* Contenido */}
+      {/* Contenido Principal */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         
-        {/* ✅ CONTENEDOR SIEMPRE PRESENTE */}
-        <div style={{ 
-          flex: 1, 
-          position: 'relative', 
-          background: loading ? '#f5f5f5' : '#fff'
-        }}>
+        {/* Contenedor de Excel - SIEMPRE PRESENTE */}
+        <div style={{ flex: 1, position: 'relative', background: '#fff' }}>
           <div 
-            ref={containerRef}  // ← SIEMPRE SE RENDERIZA
-            style={{ 
-              height: '100%', 
-              width: '100%',
-              opacity: loading ? 0 : 1  // Invisible mientras carga
-            }}
+            ref={containerRef} 
+            style={{ height: '100%', width: '100%' }}
+            id="excel-container"
           />
           
-          {/* Overlay de carga */}
-          {loading && (
+          {/* Loading Overlay */}
+          {loading && !error && (
             <div style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              top: 0, left: 0, right: 0, bottom: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -204,25 +205,38 @@ export const ExcelSimulator = ({ fileName }: Props) => {
               zIndex: 1000
             }}>
               <div style={{ 
-                width: '50px', 
-                height: '50px', 
-                border: '5px solid #f3f3f3', 
-                borderTop: '5px solid #217346', 
-                borderRadius: '50%', 
-                animation: 'spin 1s linear infinite' 
+                width: '50px', height: '50px',
+                border: '5px solid #f3f3f3',
+                borderTop: '5px solid #217346',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
               }}></div>
               <p>Cargando {fileName}...</p>
+              
+              {/* Debug Info */}
+              <div style={{ 
+                fontSize: '11px', 
+                color: '#666', 
+                maxWidth: '400px',
+                textAlign: 'left',
+                background: '#fff',
+                padding: '10px',
+                borderRadius: '4px',
+                maxHeight: '200px',
+                overflow: 'auto'
+              }}>
+                {debugInfo.map((log, i) => (
+                  <div key={i}>{log}</div>
+                ))}
+              </div>
             </div>
           )}
           
-          {/* Error */}
+          {/* Error Overlay */}
           {error && (
             <div style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              top: 0, left: 0, right: 0, bottom: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -237,34 +251,39 @@ export const ExcelSimulator = ({ fileName }: Props) => {
               <button 
                 onClick={() => window.location.reload()}
                 style={{ 
-                  padding: '10px 20px', 
-                  background: '#217346', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '6px', 
+                  padding: '10px 20px',
+                  background: '#217346',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
                   cursor: 'pointer'
                 }}
               >
                 🔄 Reintentar
               </button>
+              <div style={{ fontSize: '11px', color: '#666', maxWidth: '400px' }}>
+                {debugInfo.map((log, i) => (
+                  <div key={i}>{log}</div>
+                ))}
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* EvaluationBar */}
+      {/* EvaluationBar Simplificado */}
       <div style={{ borderTop: '2px solid #ddd', height: '200px', background: '#fff' }}>
         <EvaluationBar
           tituloPregunta="Tarea"
-          textoInstruccion="Instrucción de prueba"
-          mensajeEvaluacion={mensajeEvaluacion}
-          estadoEvaluacion={estadoEvaluacion}
-          onEvaluate={handleEvaluate}
+          textoInstruccion="Instrucción"
+          mensajeEvaluacion=""
+          estadoEvaluacion="pendiente"
+          onEvaluate={() => {}}
           tiempoRestante={formatTime(timeLeft)}
-          pasoActual={pasoActual}
-          totalPasos={totalPasos}
-          completado={completado}
-          onMarkComplete={handleMarkComplete}
+          pasoActual={1}
+          totalPasos={1}
+          completado={false}
+          onMarkComplete={() => {}}
           todasLasTareasCompletadas={true}
           onPreviousTask={() => {}}
           onNextTask={() => {}}
