@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "generate-index": "node scripts/generate-index.js",
+    "dev": "npm run generate-index & vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "generate-index": "node scripts/generate-index.js"
+    "preview": "vite preview"
+    
   },
   "dependencies": {
     "@univerjs/core": "^0.16.1",
