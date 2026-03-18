@@ -1,28 +1,22 @@
 {
   "proyectos": [
     {
-      "id": "1",
-      "nombre": "Reporte de Ventas",
-      "carpetaPreguntas": "/excel",
-      "archivoExcel": "Reporte_de_Ventas.xlsx"
-    },
-    {
-      "id": "2",
-      "nombre": "Reportes Generales",
-      "carpetaPreguntas": "/excel",
-      "archivoExcel": "Reportes generales.xlsx"
-    },
-    {
-      "id": "3",
+      "id": "videojuegos",
       "nombre": "Videojuegos",
-      "carpetaPreguntas": "/excel",
-      "archivoExcel": "VideoJuegos_01.xlsx"
+      "archivoExcel": "VideoJuegos_01.xlsx",
+      "carpetaPreguntas": "Preguntas_proyecto/Videojuegos"
     },
     {
-      "id": "4",
+      "id": "reporte-ventas",
+      "nombre": "Reporte de Ventas",
+      "archivoExcel": "Reporte_de_Ventas.xlsx",
+      "carpetaPreguntas": "Preguntas_proyecto/Reportes_ventas"
+    },
+    {
+      "id": "macros",
       "nombre": "Macros",
-      "carpetaPreguntas": "/excel",
-      "archivoExcel": "Las Maccros.xlsm"
+      "archivoExcel": "Las Maccros.xlsm",
+      "carpetaPreguntas": "Preguntas_proyecto/Macros"
     }
   ]
 }
