@@ -176,7 +176,7 @@ export const ExcelSimulator = ({ fileName }: Props) => {
         const { univerAPI } = createUniver({
           locale: LocaleType.EN_US,
           locales: { [LocaleType.EN_US]: mergeLocales(enUS) },
-          presets: [UniverSheetsCorePreset({ container: containerRef.current!, header: false, footer: true })],
+          presets: [UniverSheetsCorePreset({ container: containerRef.current!, header: false, footer: {} })],
         });
         univerRef.current = univerAPI;
         univerAPI.createUniverSheet({ id: "wb", name: fileName, sheetOrder, sheets: univerSheets });
