@@ -1,0 +1,1 @@
+En la hoja de trabajo Buscar Catálogo, inserte una función en la celda C11 que muestre el nombre del instructor del curso de la celda C10.

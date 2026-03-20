@@ -1,0 +1,1 @@
+Realizar el proceso de Configurar Microsoft Excel para que guarde una versión recuperada automáticamente de cada archivo abierto en 8 minutos.

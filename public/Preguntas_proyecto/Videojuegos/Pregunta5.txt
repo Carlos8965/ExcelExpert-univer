@@ -1,0 +1,1 @@
+En la hoja “Ganancias” escriba una fórmula en la celda J13 que devuelva la Cantidad vendida “mayor” en función de la Plataforma y el Genero mostrados en las celdas J10 y J11.

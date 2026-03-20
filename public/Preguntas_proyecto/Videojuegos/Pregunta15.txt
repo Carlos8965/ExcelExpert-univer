@@ -1,0 +1,1 @@
+Utilizar el Segmentador de datos para filtrar la tabla dinámica por campo Plataforma, que muestre los registros de 3DS. El tamaño y la ubicación de la segmentación no son relevantes.

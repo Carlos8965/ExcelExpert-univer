@@ -1,0 +1,1 @@
+Configura Excel de modo que se desactiven todas las macros del libro sin que se muestre ninguna notificación.

@@ -1,0 +1,1 @@
+La compañía de Bicicletas entregará tarjetas de regalo por: 00, 00 y 00 a los clientes que han mostrado fidelidad durante el primer cuatrimestre del año. En la celda C4 escriba una fórmula que use la función MATRIZALEAT para determinar aleatoriamente el importe de la tarjeta de regalo que cada cliente va a recibir. Como parte de la fórmula puede usar funciones aritméticas.

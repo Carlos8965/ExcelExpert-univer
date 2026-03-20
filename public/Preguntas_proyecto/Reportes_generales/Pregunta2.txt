@@ -1,0 +1,1 @@
+En la hoja de trabajo Calificaciones, inserte una función en la celda D7 que muestre la Nota correspondiente para cada alumno según la Tabla de Calificaciones. (Las calificaciones se generan aleatoriamente), copie la fórmula a las demás filas.

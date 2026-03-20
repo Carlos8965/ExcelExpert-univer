@@ -1,0 +1,1 @@
+En la hoja “Ganancias” utilizar: Buscar el objetivo para determinar el cambio de la celda E6 que daría como resultado una Cantidad vendida de 6 en la celda G6.

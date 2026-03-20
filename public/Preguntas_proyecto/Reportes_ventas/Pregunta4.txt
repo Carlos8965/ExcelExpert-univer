@@ -1,0 +1,1 @@
+En la hoja Resultados, en la columna Best Result, modifique la regla de formato condicional aplicada a las 3 mayores notas. Cambie el estilo de fuente negrita y color Verde énfasis 6, oscuro al 25% de la paleta de colores del tema. No existe necesidad de crear nuevas reglas ni eliminar las existentes.

@@ -1,0 +1,1 @@
+En la hoja Videojuegos conserve solo la última entrada de cada Videojuego y elimine todas las demás filas duplicadas en función de la columna Genero.

@@ -1,0 +1,1 @@
+Consolide las ganancias de las hojas de trabajo Semana1, Semana2 y Semana3 en la hoja Consolidar en la celda A1. Use los rótulos para Fila superior y Columna izquierda. Configure la consolidación para que los datos se actualicen automáticamente si cambian los datos de origen.

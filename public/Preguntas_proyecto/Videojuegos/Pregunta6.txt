@@ -1,0 +1,1 @@
+En la hoja de Analisis de Videojuegos, modifique la tabla dinámica para agrupar los intervalos de 5 días, acepte las fechas de inicio y de finalización predeterminadas.

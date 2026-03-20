@@ -1,0 +1,1 @@
+Configura Excel de modo que puedas editar el contenido usando el idioma Frances (Francia). No conviertas este idioma en predeterminado, ni reinicies Office si el cuadro de diálogo te lo solicita, solamente ciérralo.

@@ -1,0 +1,1 @@
+Obligar a los usuarios a utilizar la contraseña 123456 y que los usuarios no puedan agregar, eliminar, mover y ocultar hojas del libro actual protegiendo su estructura.

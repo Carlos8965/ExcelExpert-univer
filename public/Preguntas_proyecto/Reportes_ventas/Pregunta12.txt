@@ -1,0 +1,1 @@
+En la columna de Costo Unitario, cree una regla de formato condicional, que muestre una Marca roja cuando haya valores en Costo unitario. No debe mostrarse un icono de celda cuando no haya un valor de Costo unitario.

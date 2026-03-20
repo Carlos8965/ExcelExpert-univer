@@ -1,0 +1,1 @@
+En la hoja Notas 2, en la tabla resultados cree una regla de formato condicional. Use una fórmula para formatear la columna. Nombre con el color de texto Rojo (colores estándar) si el promedio de los resultados de los cuatro exámenes es mayor a 70.

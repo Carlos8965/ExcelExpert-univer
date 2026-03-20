@@ -1,0 +1,1 @@
+En la Hoja Result, actualice las propiedades PrintTitleRows y PrintGridlines de forma que la macro imprima automáticamente las filas 1:3 como filas de título sin imprimir la cuadrícula. Las macros están deshabilitadas por seguridad, pero si puede usar el editor de Visual Basic.

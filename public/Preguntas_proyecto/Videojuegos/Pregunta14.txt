@@ -1,0 +1,1 @@
+En la hoja Pivote agregar dos campos de fila a la tabla dinámica: Editorial y Género, y en la sección de valores la suma y el promedio de Ventas de USA.

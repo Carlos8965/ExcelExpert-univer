@@ -1,0 +1,1 @@
+En la hoja Bicicletas, en la celda G3 revise la fórmula para mostrar la cantidad total de piezas que tienen fecha de vencimiento anterior a la fecha actual. No incluir la fecha actual.

@@ -1,0 +1,1 @@
+Todas las celdas de la hoja “Localidades” están desbloqueadas. Bloquee únicamente las celdas F4:F10. Asegurar que los usuarios puedan seleccionar y formatear las celdas después de proteger la hoja. Proteja la hoja con la contraseña 4567.

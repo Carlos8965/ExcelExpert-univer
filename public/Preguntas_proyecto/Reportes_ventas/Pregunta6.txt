@@ -1,0 +1,1 @@
+En la hoja Exportación en la celda D5 escriba una fórmula que muestre los datos A5:B25 ordenados por Precio en orden descendente.

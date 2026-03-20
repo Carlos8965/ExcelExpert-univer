@@ -1,0 +1,1 @@
+En la hoja Ciberjuegos en la columna Ventas Total, diseñar una regla de formato condicional que use el estilo: “Conjunto de iconos para mostrar un círculo rosa, cuando el valor sea mayor o igual a 7, un círculo amarillo cuando el valor sea menor que 7 y mayor o igual a 4, y un círculo gris cuando sea menor a 4“.

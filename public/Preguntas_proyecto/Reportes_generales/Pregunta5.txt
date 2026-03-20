@@ -1,0 +1,1 @@
+Filtre los datos de la tabla de Ubicaciones para mostrar un listado de la ubicación de la celda E14.

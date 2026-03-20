@@ -1,0 +1,6 @@
+En la hoja de trabajo Escenario, cree tres escenarios, llamados Actual, Pesimista y Optimista respectivamente:
+    Actual ► Datos Actuales
+    Pesimista ► Reducción de un 10%
+    Optimista ► Aumento de un 10%
+Muestre el escenario Optimista.
+Agregue una ventana de inspección a la celda B8.

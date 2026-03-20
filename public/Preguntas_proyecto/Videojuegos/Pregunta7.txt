@@ -1,0 +1,1 @@
+En la hoja Resumen configure la Tabla Dinámica para mostrar una línea en blanco debajo del último Genero en cada sección de Plataforma.

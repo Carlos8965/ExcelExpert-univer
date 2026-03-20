@@ -1,0 +1,1 @@
+En la hoja Tratamientos, en la celda H3 escriba una fórmula que devuelva la cantidad de Total Cobrado que están marcados como SI en la columna Descuento.

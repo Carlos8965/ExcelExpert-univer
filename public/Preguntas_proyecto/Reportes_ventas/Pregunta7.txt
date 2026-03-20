@@ -1,0 +1,1 @@
+En la hoja Análisis configure el gráfico dinámico para mostrar los botones de: Mostrar botones de campo de eje y botones de campo de valor.

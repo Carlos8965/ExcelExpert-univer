@@ -1,1 +1,1 @@
-/*Crear una macro que...*/
+En la Hoja RH modifique la macro FormatoTabla, para que aplique el estilo: TableStyleLight14.

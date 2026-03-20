@@ -1,0 +1,1 @@
+En la hoja Notas, use una funcionalidad de Excel para agrupar todas las filas de la tabla que tengan el valor A en la columna de selección. No cree ningún otro grupo en la hoja.

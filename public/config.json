@@ -17,6 +17,12 @@
       "nombre": "Macros",
       "archivoExcel": "Las Maccros.xlsm",
       "carpetaPreguntas": "Preguntas_proyecto/Macros"
+    },
+    {
+      "id": "reportes-generales",
+      "nombre": "Reportes Generales",
+      "archivoExcel": "Reportes_generales.xlsx",
+      "carpetaPreguntas": "Preguntas_proyecto/Reportes_generales"
     }
   ]
 }

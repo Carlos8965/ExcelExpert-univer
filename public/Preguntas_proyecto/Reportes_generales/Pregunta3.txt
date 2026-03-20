@@ -1,0 +1,1 @@
+En la hoja de trabajo Vendedores, inserte una función en las celdas C12 a C15, para determinar el ID, Apellido, Puesto y Fecha de Nacimiento respectivamente del Nombre de la celda C11.

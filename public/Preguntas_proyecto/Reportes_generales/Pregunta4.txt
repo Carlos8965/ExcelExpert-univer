@@ -1,0 +1,1 @@
+En la hoja de trabajo Ventas, agregue un Campo calculado a la Tabla dinámica llamado IVA 16% que calcule el IVA del 16% a las ventas de Enero.

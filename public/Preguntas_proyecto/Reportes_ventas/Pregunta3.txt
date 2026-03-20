@@ -1,0 +1,1 @@
+En la hoja Zonas, cree un gráfico que muestre “Unidades de producción” en cada ubicación como columna agrupada y el “Máximo de unidades” en cada ubicación como un gráfico de líneas con marcadores en el mismo gráfico. Muestre las ciudades de Ubicación como etiquetas del eje horizontal. El tamaño y posición del gráfico no son relevantes.

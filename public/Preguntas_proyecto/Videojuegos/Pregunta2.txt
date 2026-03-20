@@ -1,0 +1,1 @@
+En la hoja Profesiones, en la columna ID Empleado aplicar un formato de número personalizado para mostrar automáticamente cada ID con el símbolo “#” seguido de cinco dígitos. El número existente debe rellenarse con ceros al lado izquierdo. Para crear los cinco dígitos, seguir el ejemplo: Por ejemplo, “123” se mostrará como “#00123”.
